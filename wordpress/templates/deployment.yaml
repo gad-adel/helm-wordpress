@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Nom du déploiement, généré dynamiquement à partir des valeurs du chart
+  name: {{ include "wordpress.fullname" . }}
+  # Namespace dans lequel le déploiement sera créé
+  namespace: wordpress-namespace
+  # Étiquettes pour identifier les ressources associées à ce déploiement
+  labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
+spec:
+  # Nombre de réplicas (instances) du Pod à déployer
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.wordpress.replicaCount }}
+  {{- end }}
+  # Sélecteur pour associer les Pods à ce déploiement
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      # Étiquettes pour identifier les Pods créés par ce déploiement
+      labels:
+        app: wordpress
+        {{- include "wordpress.labels" . | nindent 8 }}
+    spec:
+      # Secrets pour tirer des images depuis un registre privé (si configuré)
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: wordpress
+          # Image Docker utilisée pour le conteneur WordPress
+          image: {{ .Values.wordpress.image }}
+          # Politique de pull de l'image (par défaut : IfNotPresent)
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          # Port exposé par le conteneur
+          ports:
+            - containerPort: 80
+              name: http
+          # Variables d'environnement chargées depuis un ConfigMap et un Secret
+          envFrom:
+            - configMapRef:
+                name: wordpress-config
+            - secretRef:
+                name: wordpress-secret
+          # Ressources (CPU, mémoire) allouées au conteneur (si configurées)
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
