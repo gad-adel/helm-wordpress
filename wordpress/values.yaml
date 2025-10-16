@@ -173,6 +173,7 @@ wordpress:
     user: wp_user
     password: wp_password
     ssl: false
+  existingClaim: wordpress-pvc
 
 mariadb:
   enabled: true
