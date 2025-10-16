@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mariadb
   namespace: mariadb-namespace
   labels:
     app: mariadb
 spec:
+  serviceName: mariadb
   replicas: 2
   selector:
     matchLabels:
@@ -27,6 +28,7 @@ spec:
               value: wp_user
             - name: MYSQL_PASSWORD
               value: wp_password
+            # Pour réplication : mariadb-0 = master, mariadb-1 = replica
             - name: MYSQL_REPLICATION_MODE
               value: master
             - name: MYSQL_REPLICATION_USER
@@ -37,14 +39,14 @@ spec:
             - containerPort: 3306
               name: mysql
           volumeMounts:
-            - name: mariadb-persistent-storage
+            - name: mariadb-data
               mountPath: /var/lib/mysql
-      volumeClaimTemplates:
-        - metadata:
-            name: mariadb-persistent-storage
-          spec:
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: 10Gi
-            storageClassName: csi-cinder-high-speed
+  volumeClaimTemplates:
+    - metadata:
+        name: mariadb-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: csi-cinder-high-speed
