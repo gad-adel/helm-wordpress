@@ -168,7 +168,23 @@ wordpress:
     port: 80
     nodePort: 30080
   db:
-    host: mariadb.default.svc.cluster.local
+    host: mariadb.mariadb-namespace.svc.cluster.local
     name: wordpress
     user: wp_user
     password: wp_password
+    ssl: false
+
+mariadb:
+  enabled: true
+  image: mariadb:10.5
+  replicaCount: 1
+  rootPassword: root_password
+  database: wordpress
+  user: wp_user
+  password: wp_password
+  service:
+    type: ClusterIP
+    port: 3306
+env:
+  - name: WORDPRESS_DEBUG
+    value: true

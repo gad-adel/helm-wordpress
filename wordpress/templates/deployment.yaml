@@ -1,3 +1,4 @@
+# Variables Helm pour le déploiement de WordPress
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,12 +40,21 @@ spec:
           ports:
             - containerPort: 80
               name: http
-          # Variables d'environnement chargées depuis un ConfigMap et un Secret
+          # Variables d'environnement chargées depuis un configmap et un Secret
           envFrom:
             - configMapRef:
                 name: wordpress-config
             - secretRef:
                 name: wordpress-secret
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: {{ .Values.wordpress.db.host }}
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.wordpress.db.name }}
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.wordpress.db.user }}
+            - name: WORDPRESS_DB_PASSWORD
+              value: {{ .Values.wordpress.db.password }}
           # Ressources (CPU, mémoire) allouées au conteneur (si configurées)
           {{- with .Values.resources }}
           resources:
